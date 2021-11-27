@@ -12,6 +12,7 @@ const fs = require('fs');
 const Zip = require('adm-zip');
 const electron = require('electron');
 
+// dataDir pilla la carpeta AppData
 const dataDir =  (electron.app || electron.remote.app).getPath('userData');
 
 console.info('Data directory:', dataDir);
@@ -177,14 +178,18 @@ if (!isMainInstance) {
   /*
   UPDATE STUFF
   */
+
+  //Devuelve 1 si la version que pasamos por parametro es mas alta (nueva) que la el tiene como currentVersion 
   const isNewerVersion = (version) => {
     return version.localeCompare(currentVersion, undefined, { numeric: true }) === 1;
   }
 
+  //Funcion tocha de descargar las updates de PokeclickerWeb
   const downloadUpdate = async (initial = false) => {
     const zipFilePath = `${dataDir}/update.zip`;
     const file = fs.createWriteStream(zipFilePath);
-    https.get('https://codeload.github.com/pokeclicker/pokeclicker/zip/master', async res => {
+    //Aqui cambiamos el github de pokeclicker por el mio
+    https.get('https://codeload.github.com/manelfg24/pokeclicker/zip/master', async res => {
       let cur = 0;
       try {
         if (!initial) await mainWindow.webContents.executeJavaScript(`Notifier.notify({ title: '[UPDATER] v${newVersion}', message: 'Downloading Files...<br/>Please Wait...', timeout: 1e6 })`);
@@ -205,6 +210,7 @@ if (!isMainInstance) {
 
         const zip = new Zip(zipFilePath);
 
+        //Esto nos guarda en AppData documentacion (?)
         const extracted = zip.extractEntryTo('pokeclicker-master/docs/', `${dataDir}`, true, true);
 
         fs.unlinkSync(zipFilePath);
@@ -258,6 +264,7 @@ if (!isMainInstance) {
   }
 
   const checkForUpdates = () => {
+    //Esto pilla el package.json con la version y tal de pokeclickerWeb
     const request = https.get('https://raw.githubusercontent.com/pokeclicker/pokeclicker/master/package.json', res => {
       let body = '';
 
